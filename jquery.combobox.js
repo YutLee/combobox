@@ -32,6 +32,11 @@
 			
 			item = that.popup.find('li');
 			
+			function setScrollTop(item) {
+				var top = (that.options.height - (item.offset().top + item.outerHeight(true) + that.popup.scrollTop() - that.popup.offset().top)) * -1;
+				that.popup.scrollTop(top);
+			}
+			
 			$(window).bind('scroll' + NS, function(e) {
 				that.close();
 			});
@@ -44,19 +49,24 @@
 			
 			item.bind('click' + NS, function(e) {
 				var val = that.textInput.val(),
-					text = $(this).text(),
-					idx = $(this).index();
+					t = $(this),
+					text = t.text(),
+					idx = t.index();
 					
 				that.text(text);
-				console.log($(this).data('val'));
-				element.val($(this).data('val'));
+				that.value(t.data('val'));
 				
-				$(this).addClass(STATESELECTED).siblings('.' + STATESELECTED).removeClass(STATESELECTED);
+				t.addClass(STATESELECTED).siblings('.' + STATESELECTED).removeClass(STATESELECTED);
 				
-				e = extend({}, e, {item: idx});
+				e = extend({}, e, {item: t});
 				
 				if(isFunction(that.options.select)) {
 					that.options.select.call(that, e);
+				} 
+				
+				e = extend({}, e, {olderText: that.olderText, currentText: that.text()});
+				if(isFunction(that.options.change) && that.olderText !== that.text()) {
+					that.options.change.call(that, e);
 				} 
 				
 				that.close();
@@ -79,18 +89,21 @@
 			
 			that.textInput.bind('focus' + NS, function(e) {
 				that.target.addClass(STATEFOCUSED);
-				that.olderText = $(this).val();
+				that.olderText = that.text();
 			}).bind('blur' + NS, function(e) {
 				var currentText = $(this).val();
 				that.target.removeClass(STATEFOCUSED);
 				that.play = setTimeout(function() {
 					if(!isNotBlur) {
+						e = extend({}, e, {olderText: that.olderText, currentText: currentText});
+						if(!that.search(currentText)) {
+							that.value('');
+						}
+						if(isFunction(that.options.change) && that.olderText !== currentText) {
+							that.options.change.call(that, e);
+						} 
 						that.close();
 					}
-					e = extend({}, e, {olderText: that.olderText, currentText: currentText});
-					if(isFunction(that.options.change) && that.olderText !== currentText) {
-						that.options.change.call(that, e);
-					} 
 				}, 5);
 				//that.close();
 			}).bind('keydown' + NS, function(e) {
@@ -99,12 +112,40 @@
 					enter = e.keyCode === 13 ? true : false,
 					esc = e.keyCode === 27 ? true : false,
 					current = that.popup.find('.' + STATESELECTED),
+					len = that.popup.find('li').length,
 					prevItem,
 					nextItem;
 		
 				current = current.length > 0 ? current : that.popup.find('.' + STATEFOCUSED);
-				prevItem = current.prev();
-				nextItem = current.next();
+				
+				function getPrev(item) {
+					if(item.length > 0) {
+						if(item.css('display') !== 'none') {
+							prevItem = item;
+							return false;
+						}else {
+							getPrev(item.prev());
+						}
+					}else {
+						return false;
+					}
+				}
+				
+				function getNext(item) {
+					if(item.length > 0) {
+						if(item.css('display') !== 'none') {
+							nextItem = item;
+							return false;
+						}else {
+							getNext(item.next());
+						}
+					}else {
+						return false;
+					}
+				}
+
+				getPrev(current.prev());
+				getNext(current.next());
 				
 				if(esc) {
 					that.close();
@@ -114,16 +155,18 @@
 					//that.select();
 					current.click();
 				}
-				if(prev && prevItem.length > 0) {
+				if(prev && prevItem) {
 					prevItem.addClass(STATESELECTED)
 						.siblings('.' + STATESELECTED).removeClass(STATESELECTED).end()
 						.siblings('.' + STATEFOCUSED).removeClass(STATEFOCUSED);
+					setScrollTop(prevItem);
 					that.text(prevItem.text());
 				}
-				if(next && nextItem.length > 0) {
+				if(next && nextItem) {
 					nextItem.addClass(STATESELECTED)
 						.siblings('.' + STATESELECTED).removeClass(STATESELECTED).end()
 						.siblings('.' + STATEFOCUSED).removeClass(STATEFOCUSED);
+					setScrollTop(nextItem);
 					that.text(nextItem.text());
 				}
 				if(enter || prev || next) {
@@ -150,7 +193,7 @@
 		options: {
 			name: 'ComboBox',
 			placeholder: '',
-			height: 100,
+			height: 200,
 			dataTextField: '',
             dataValueField: '',
 			suggest: false
@@ -165,10 +208,8 @@
 				down = $('<span class="g-select" tabindex="-1"><span class="g-icon"></span></span>'),
 				popup = $('<div class="g-popup" style="overflow:auto;"><ul tabindex="-1"></ul></div>');
 			
-			//el.hide().wrap(box);
-			//box.after(el);
 			that.target = el.hide().wrap(box).closest('span');
-			that.textInput = $('<input type="text" />').addClass('g-input').appendTo(that.target);
+			that.textInput = $('<input type="text" autocomplete="off" />').addClass('g-input').appendTo(that.target);
 			that.down = down.appendTo(that.target);
 			that.textInput.attr('placeholder', that.options.placeholder);
 			if(name && trim(name) !== '') {
@@ -207,23 +248,44 @@
 			return pos;
 			
 		},
-		search: function() {
-		
+		search: function(text) {
+			var that = this,
+				i = 0,
+				result = false,
+				len = that.options.dataSource.length;
+				
+			while(i < len) {
+				if(text === that.options.dataSource[i][that.options.dataTextField]) {
+					result = true;
+					break;
+				}
+				i += 1;
+			}
+			return result;
 		},
 		select: function(str) {
 			var that = this,
 				now,
+				first = null,
 				result = false,
 				reg = new RegExp(str);
+				
+			that.popup.find('li').hide();
+			
 			if(str === '') {
-				return false;
+				that.popup.find('li').show().eq(0).removeClass(STATESELECTED).addClass(STATEFOCUSED).siblings('.' + STATEFOCUSED).removeClass(STATEFOCUSED).siblings('.' + STATESELECTED).removeClass(STATESELECTED);;
+				return true;
 			}
+			
 			for(var i = 0; i < that.optionSize; i++) {
 				now = that.popup.find('li').eq(i);
 				if(reg.test(now.text())) {
 					result = true;
-					now.removeClass(STATESELECTED).addClass(STATEFOCUSED).siblings('.' + STATEFOCUSED).removeClass(STATEFOCUSED).siblings('.' + STATESELECTED).removeClass(STATESELECTED);
-					break;
+					if(first === null) {
+						first = i;
+						now.removeClass(STATESELECTED).addClass(STATEFOCUSED).siblings('.' + STATEFOCUSED).removeClass(STATEFOCUSED).siblings('.' + STATESELECTED).removeClass(STATESELECTED);
+					}
+					now.show();
 				}
 			}
 			if(!result) {
@@ -244,7 +306,7 @@
 			if(value === undefined) {
 				return that.element.val();
 			}else {
-				that.element.val(text);
+				that.element.val(value);
 			}
 		},
 		open: function() {

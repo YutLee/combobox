@@ -144,25 +144,28 @@
 		<div id="demo"  style="position:relative;height:500px;">
 		<form>
 			<input name="dd" id="color" />
-			<select><option>sdfasdf</option></select>
 			<input type="submit" value="submit" />
 		</form>
 		</div>
 		<script>
-			console.log($('select').val());
+
 			var dataSource = [
 				{val: 'a', text: 'red'},
 				{val: 'b', text: 'blud'},
-				{val: 'c', text: 'blow'},
-				{val: 'd', text: '就是中'}
+				{val: 'c', text: 'green'},
+				{val: 'd', text: 'black'},
+				{val: 'd', text: '蓝色'},
+				{val: 'd', text: '红色'},
+				{val: 'd', text: '黑色'},
+				{val: 'd', text: '绿色'}
 			];
 			$('#color').comboBox({
 				dataSource: dataSource,
 				dataTextField: 'text',
 				dataValueField: 'val',
-				height: 200,
+				height: 150,
 				change: function(e) {
-					console.log(e.olderText, e.currentText);
+					console.log(this.text(), this.value());
 				},
 				select: function(e) {
 					console.log(e.item);
