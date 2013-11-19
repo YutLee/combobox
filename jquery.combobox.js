@@ -47,8 +47,8 @@
 				isNotBlur = false;
 			});
 			
-			item.bind('click' + NS, function(e) {
-				var val = that.textInput.val(),
+			that.popup.delegate('li', 'click' + NS, function(e) {
+				var val = that.input.val(),
 					t = $(this),
 					text = t.text(),
 					idx = t.index();
@@ -76,7 +76,7 @@
 			that.down.bind('click' + NS, function(e) {
 				if(!that.status) {
 					that.open();
-					that.textInput.focus();
+					that.input.focus();
 				}else {
 					that.close();
 				}
@@ -87,7 +87,7 @@
 				isNotBlur = false;
 			});
 			
-			that.textInput.bind('focus' + NS, function(e) {
+			that.input.bind('focus' + NS, function(e) {
 				that.target.addClass(STATEFOCUSED);
 				that.olderText = that.text();
 			}).bind('blur' + NS, function(e) {
@@ -178,7 +178,7 @@
 					enter = e.keyCode === 13 ? true : false,
 					esc = e.keyCode === 27 ? true : false;
 				if(next || prev || enter) {return false;}
-				result = that.select($(this).val()); 
+				result = that.filter($(this).val()); 
 				if(result && !esc) {
 					that.open();
 				}else {
@@ -196,31 +196,27 @@
 			height: 200,
 			dataTextField: '',
             dataValueField: '',
+			ignoreCase: true,
 			suggest: false
 		},
 		_create: function() {
 			var that = this,
 				el = that.element,
 				name = el.attr('name'),
-				i = 0,
-				len = that.options.dataSource.length,
 				box = $('<span class="g-combobox" tabindex="-1"></span>'),
 				down = $('<span class="g-select" tabindex="-1"><span class="g-icon"></span></span>'),
 				popup = $('<div class="g-popup" style="overflow:auto;"><ul tabindex="-1"></ul></div>');
 			
 			that.target = el.hide().wrap(box).closest('span');
-			that.textInput = $('<input type="text" autocomplete="off" />').addClass('g-input').appendTo(that.target);
+			that.input = $('<input type="text" autocomplete="off" />').addClass('g-input').appendTo(that.target);
 			that.down = down.appendTo(that.target);
-			that.textInput.attr('placeholder', that.options.placeholder);
+			that.input.attr('placeholder', that.options.placeholder);
 			if(name && trim(name) !== '') {
-				that.textInput.attr('name', name + '_input');
+				that.input.attr('name', name + '_input');
 			}
 			that.popup = popup.appendTo('body').hide().css('position', 'absolute');
-			that.optionSize = len;
-			
-			for(; i < len; i++) {
-				$('<li>' + that.options.dataSource[i][that.options.dataTextField] + '</li>').appendTo(that.popup.children('ul')).data('val', that.options.dataSource[i][that.options.dataValueField]);
-			}
+						
+			that.setDataSource(that.options.dataSource);
 		},
 		_position: function() {
 			var that = this,
@@ -248,6 +244,22 @@
 			return pos;
 			
 		},
+		setDataSource: function(data) {
+			var that = this,
+				i = 0,
+				len = data.length;
+			that.optionSize = len;
+			that.ul = that.popup.children('ul').empty();
+			that.value('');
+			that.text('');
+			for(; i < len; i++) {
+				$('<li>' + data[i][that.options.dataTextField] + '</li>').appendTo(that.ul).data('val', data[i][that.options.dataValueField]);
+			}
+		},
+		select: function(obj) {
+			var that = this;
+			that.ul.children().eq(obj).click();
+		},
 		search: function(text) {
 			var that = this,
 				i = 0,
@@ -263,12 +275,13 @@
 			}
 			return result;
 		},
-		select: function(str) {
+		filter: function(str) {
 			var that = this,
 				now,
 				first = null,
 				result = false,
-				reg = new RegExp(str);
+				ignoreCase = that.options.ignoreCase ? 'i' : '';
+				reg = new RegExp(str, ignoreCase);
 				
 			that.popup.find('li').hide();
 			
@@ -296,9 +309,9 @@
 		text: function(text) {
 			var that = this;
 			if(text === undefined) {
-				return that.textInput.val();
+				return that.input.val();
 			}else {
-				that.textInput.val(text);
+				that.input.val(text);
 			}
 		},
 		value: function(value) {
@@ -315,7 +328,7 @@
 			
 			that.status = true;
 			that.popup.css(that._position()).show().addClass(STATEFOCUSED);
-			if(!that.select(that.text())) {
+			if(!that.filter(that.text())) {
 				that.popup.find('li').eq(0).addClass(STATEFOCUSED);
 			}
 		},
@@ -326,7 +339,7 @@
 			that.popup.hide().removeClass(STATEFOCUSED);
 			that.target.removeClass(STATEDOWN + ' ' + STATEUP);
 
-			if(!that.select(that.text())) {
+			if(!that.filter(that.text())) {
 				that.popup.find('.' + STATESELECTED).removeClass(STATESELECTED).end()
 						.find('.' + STATEFOCUSED).removeClass(STATEFOCUSED);
 			}
@@ -337,13 +350,19 @@
 		destroy: function() {
 			var that = this,
 				element = that.element;
-
+				
+			element.removeData('gComboBox');
+			element.insertAfter(that.target);
+			that.target.remove();
+			that.popup.remove();
+			that.down.remove();
 		}
 	};
 	
 	$.fn.comboBox = function(options) {
 		this.each(function() {
 			var combobox = new ComboBox();
+			$(this).data('gComboBox', combobox);
 			combobox.init($(this), options);
 		});
 	};
