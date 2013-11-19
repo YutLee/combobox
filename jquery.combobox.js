@@ -208,6 +208,7 @@
 				popup = $('<div class="g-popup" style="overflow:auto;"><ul tabindex="-1"></ul></div>');
 			
 			that.target = el.hide().wrap(box).closest('span');
+			that.target.width(el.width());
 			that.input = $('<input type="text" autocomplete="off" />').addClass('g-input').appendTo(that.target);
 			that.down = down.appendTo(that.target);
 			that.input.attr('placeholder', that.options.placeholder);
