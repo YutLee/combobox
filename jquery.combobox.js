@@ -92,13 +92,16 @@
 				that.target.addClass(STATEFOCUSED);
 				that.olderText = that.text();
 			}).bind('blur' + NS, function(e) {
-				var currentText = $(this).val();
+				var currentText = $(this).val(),
+					search = that.search(currentText);
 				that.target.removeClass(STATEFOCUSED);
 				that.play = setTimeout(function() {
 					if(!isNotBlur) {
 						e = extend({}, e, {olderText: that.olderText, currentText: currentText});
-						if(!that.search(currentText)) {
-							that.value('');
+						if(!search[0]) {
+							that.value(search[1]);
+						}else {
+							that.value(that.popup.find('li').eq(search[1]).data('val'));
 						}
 						if(isFunction(that.options.change) && that.olderText !== currentText) {
 							that.options.change.call(that, e);
@@ -267,12 +270,12 @@
 		search: function(text) {
 			var that = this,
 				i = 0,
-				result = false,
+				result = [false, ''],
 				len = that.options.dataSource.length;
 				
 			while(i < len) {
 				if(text === that.options.dataSource[i][that.options.dataTextField]) {
-					result = true;
+					result = [true, i];
 					break;
 				}
 				i += 1;
