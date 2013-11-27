@@ -263,7 +263,7 @@
 				var ds = data[i],
 					text = ds[that.options.dataTextField],
 					value= ds[that.options.dataValueField];
-				if(text && val) {
+				if(text && value) {
 					$('<li>').html(text).appendTo(that.ul).data('val', value);
 				}
 			}
