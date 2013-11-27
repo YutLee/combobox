@@ -150,7 +150,6 @@
 		</form>
 		</div>
 		<script>
-
 			var dataSource = [
 				{val: '1', text: 'red'},
 				{val: '2', text: 'blud'},
@@ -174,6 +173,21 @@
 				height: 150,
 				change: function(e) {
 					console.log(this.text(), this.value());
+					$.ajax({
+						url: 'data.html',
+						success: function(data) {
+							$(data).appendTo('form');
+							var ss = $('#type1').val();
+							//alert(ss);
+							console.log(ss);
+							$('#type').comboBox({
+								dataSource: eval(ss),
+								dataTextField: 'text',
+								dataValueField: 'val',
+								index: 1
+							});
+						}
+					});
 				},
 				select: function(e) {
 					console.log(this.text(), this.value());

@@ -260,7 +260,12 @@
 			that.value('');
 			that.text('');
 			for(; i < len; i++) {
-				$('<li>' + data[i][that.options.dataTextField] + '</li>').appendTo(that.ul).data('val', data[i][that.options.dataValueField]);
+				var ds = data[i],
+					text = ds[that.options.dataTextField],
+					value= ds[that.options.dataValueField];
+				if(text && val) {
+					$('<li>').html(text).appendTo(that.ul).data('val', value);
+				}
 			}
 		},
 		select: function(obj) {
