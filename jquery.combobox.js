@@ -26,6 +26,10 @@
 			options = that.options = extend({}, that.options, options);
 			that.element = element;
 			options.placeholder = options.placeholder || element.attr('placeholder');
+			console.log(element.data('gComboBox'));
+			if(that.element.data('gComboBox')) {
+				that.destroy();
+			}
 	
 			that.status = false;
 			that._create();
@@ -261,9 +265,10 @@
 			that.text('');
 			for(; i < len; i++) {
 				var ds = data[i],
-					text = ds[that.options.dataTextField],
+					text, value;
+				if(ds && !$.isEmptyObject(ds)) {
+					text = ds[that.options.dataTextField];
 					value= ds[that.options.dataValueField];
-				if(text && value) {
 					$('<li>').html(text).appendTo(that.ul).data('val', value);
 				}
 			}
@@ -378,8 +383,8 @@
 	$.fn.comboBox = function(options) {
 		this.each(function() {
 			var combobox = new ComboBox();
-			$(this).data('gComboBox', combobox);
 			combobox.init($(this), options);
+			$(this).data('gComboBox', combobox);
 		});
 	};
 	
