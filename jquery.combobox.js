@@ -45,7 +45,7 @@
 				that.close();
 			});
 			
-			that.popup.find('ul').bind('focus' + NS, function(e) {
+			that.popup.bind('focus' + NS, function(e) {
 				isNotBlur = true;
 			}).bind('blur' + NS, function(e) {
 				isNotBlur = false;
