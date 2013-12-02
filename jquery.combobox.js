@@ -26,7 +26,7 @@
 			options = that.options = extend({}, that.options, options);
 			that.element = element;
 			options.placeholder = options.placeholder || element.attr('placeholder');
-			console.log(element.data('gComboBox'));
+			
 			if(that.element.data('gComboBox')) {
 				that.destroy();
 			}
@@ -46,6 +46,12 @@
 			});
 			
 			that.popup.bind('focus' + NS, function(e) {
+				isNotBlur = true;
+			}).bind('blur' + NS, function(e) {
+				isNotBlur = false;
+			});
+			
+			that.popup.find('ul').bind('focus' + NS, function(e) {
 				isNotBlur = true;
 			}).bind('blur' + NS, function(e) {
 				isNotBlur = false;
