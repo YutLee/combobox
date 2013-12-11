@@ -6,7 +6,10 @@
  
 (function($, undefined) {
 
-	var ComboBox = function() {},
+	var ComboBox = function(element, options) {
+			this.init(element, options);
+			element.data(this.options.name, this);
+		},
 		isFunction = $.isFunction,
 		isArray = $.isArray,
 		extend = $.extend,
@@ -26,7 +29,7 @@
 			options = that.options = extend({}, that.options, options);
 			that.element = element;
 			options.placeholder = options.placeholder || element.attr('placeholder');
-			
+
 			if(that.element.data('gComboBox')) {
 				that.destroy();
 			}
@@ -48,12 +51,7 @@
 			that.popup.bind('focus' + NS, function(e) {
 				isNotBlur = true;
 			}).bind('blur' + NS, function(e) {
-				isNotBlur = false;
-			});
-			
-			that.popup.find('ul').bind('focus' + NS, function(e) {
-				isNotBlur = true;
-			}).bind('blur' + NS, function(e) {
+				that.close();
 				isNotBlur = false;
 			});
 			
@@ -63,18 +61,16 @@
 					text = t.text(),
 					idx = t.index();
 					
+				if(isFunction(that.options.select)) {
+					that.options.select.call(that, e);
+				} 
+					
 				that.text(text);
 				that.value(t.data('val'));
 				
 				t.addClass(STATESELECTED).siblings('.' + STATESELECTED).removeClass(STATESELECTED);
 				
-				e = extend({}, e, {item: t});
-				
-				if(isFunction(that.options.select)) {
-					that.options.select.call(that, e);
-				} 
-				
-				e = extend({}, e, {olderText: that.olderText, currentText: that.text()});
+				e = extend({}, e, {item: t, olderText: that.olderText, currentText: that.text()});
 				if(isFunction(that.options.change) && that.olderText !== that.text()) {
 					that.options.change.call(that, e);
 				} 
@@ -207,7 +203,7 @@
 			}
 		},
 		options: {
-			name: 'ComboBox',
+			name: 'gComboBox',
 			placeholder: '',
 			height: 200,
 			dataTextField: '',
@@ -221,7 +217,7 @@
 				name = el.attr('name'),
 				box = $('<span class="g-combobox" tabindex="-1"></span>'),
 				down = $('<span class="g-select" tabindex="-1"><span class="g-icon"></span></span>'),
-				popup = $('<div class="g-popup" style="overflow:auto;"><ul tabindex="-1"></ul></div>');
+				popup = $('<div class="g-popup" tabindex="-1" style="overflow:auto;"><ul></ul></div>');
 			
 			that.target = el.hide().wrap(box).closest('span');
 			that.target.width(el.width());
@@ -376,21 +372,19 @@
 		},
 		destroy: function() {
 			var that = this,
-				element = that.element;
-				
-			element.removeData('gComboBox');
-			element.insertAfter(that.target);
-			that.target.remove();
-			that.popup.remove();
-			that.down.remove();
+				element = that.element,
+				oldData = element.data(that.options.name);
+
+			oldData.popup.remove();
+			that.element = element.insertAfter(oldData.target);
+			that.element.prev().remove();
+			that.element.removeData(that.options.name);
 		}
 	};
 	
 	$.fn.comboBox = function(options) {
-		this.each(function() {
-			var combobox = new ComboBox();
-			combobox.init($(this), options);
-			$(this).data('gComboBox', combobox);
+		$(this).each(function() {
+			new ComboBox($(this), options);
 		});
 	};
 	
