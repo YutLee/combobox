@@ -37,8 +37,6 @@
 			that.status = false;
 			that._create();
 			
-			console.log(that.currentIndex);
-
 			item = that.popup.find('li');
 			
 			function setScrollTop(item) {
