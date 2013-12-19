@@ -37,6 +37,8 @@
 			that.status = false;
 			that._create();
 			
+			console.log(that.currentIndex);
+
 			item = that.popup.find('li');
 			
 			function setScrollTop(item) {
@@ -59,19 +61,23 @@
 				var val = that.input.val(),
 					t = $(this),
 					text = t.text(),
+					oldIndex = that.currentIndex,
 					idx = t.index();
 					
 				if(isFunction(that.options.select)) {
-					that.options.select.call(that, e);
+					var notChange = that.options.select.call(that, e);
+					if(notChange === false) {
+						that.close();							
+						return false;	
+					} 
 				} 
-					
-				that.text(text);
-				that.value(t.data('val'));
-				
-				t.addClass(STATESELECTED).siblings('.' + STATESELECTED).removeClass(STATESELECTED);
-				
-				e = extend({}, e, {item: t, olderText: that.olderText, currentText: that.text()});
-				if(isFunction(that.options.change) && that.olderText !== that.text()) {
+
+				if(isFunction(that.options.change) && oldIndex !== idx) {
+					that.text(text);
+					that.value(t.data('val'));
+					that.currentIndex = idx;
+					t.addClass(STATESELECTED).siblings('.' + STATESELECTED).removeClass(STATESELECTED);
+					e = extend({}, e, {item: t, oldText: that.oldText, currentText: that.text()});
 					that.options.change.call(that, e);
 				} 
 				
@@ -96,20 +102,23 @@
 			
 			that.input.bind('focus' + NS, function(e) {
 				that.target.addClass(STATEFOCUSED);
-				that.olderText = that.text();
+				that.oldText = that.text();
 			}).bind('blur' + NS, function(e) {
 				var currentText = $(this).val(),
-					search = that.search(currentText);
+					search = that.search(currentText),
+					oldIndex = that.currentIndex,
+					idx = search[1];
 				that.target.removeClass(STATEFOCUSED);
 				that.play = setTimeout(function() {
 					if(!isNotBlur) {
-						e = extend({}, e, {olderText: that.olderText, currentText: currentText});
-						if(!search[0]) {
-							that.value(search[1]);
-						}else {
-							that.value(that.popup.find('li').eq(search[1]).data('val'));
-						}
-						if(isFunction(that.options.change) && that.olderText !== currentText) {
+						if(isFunction(that.options.change) && oldIndex !== idx) {
+							that.currentIndex = idx;
+							e = extend({}, e, {oldText: that.oldText, currentText: currentText});
+							if(!search[0]) {
+								that.value(search[1]);
+							}else {
+								that.value(that.popup.find('li').eq(search[1]).data('val'));
+							}
 							that.options.change.call(that, e);
 						} 
 						that.close();
@@ -197,10 +206,7 @@
 					that.close();
 				}
 			});
-			
-			if(that.options.index >= 0) {
-				item.eq(that.options.index).click();
-			}
+
 		},
 		options: {
 			name: 'gComboBox',
@@ -271,6 +277,11 @@
 				if(ds && !$.isEmptyObject(ds)) {
 					text = ds[that.options.dataTextField];
 					value= ds[that.options.dataValueField];
+					if(i === that.options.index) {
+						that.value(value);
+						that.text(text);
+						that.currentIndex = i;
+					}
 					$('<li>').html(text).appendTo(that.ul).data('val', value);
 				}
 			}
@@ -282,7 +293,7 @@
 		search: function(text) {
 			var that = this,
 				i = 0,
-				result = [false, ''],
+				result = [false, null],
 				len = that.options.dataSource.length;
 				
 			while(i < len) {
