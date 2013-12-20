@@ -65,18 +65,21 @@
 				if(isFunction(that.options.select)) {
 					var notChange = that.options.select.call(that, e);
 					if(notChange === false) {
+						that.text(that.oldText);
 						that.close();							
 						return false;	
 					} 
 				} 
-
-				if(isFunction(that.options.change) && oldIndex !== idx) {
+				
+				if(oldIndex !== idx) {
 					that.text(text);
 					that.value(t.data('val'));
 					that.currentIndex = idx;
 					t.addClass(STATESELECTED).siblings('.' + STATESELECTED).removeClass(STATESELECTED);
 					e = extend({}, e, {item: t, oldText: that.oldText, currentText: that.text()});
-					that.options.change.call(that, e);
+					if(isFunction(that.options.change)) {
+						that.options.change.call(that, e);
+					}
 				} 
 				
 				that.close();
@@ -108,8 +111,9 @@
 					idx = search[1];
 				that.target.removeClass(STATEFOCUSED);
 				that.play = setTimeout(function() {
+					
 					if(!isNotBlur) {
-						if(isFunction(that.options.change) && oldIndex !== idx) {
+						if(oldIndex !== idx) {
 							that.currentIndex = idx;
 							e = extend({}, e, {oldText: that.oldText, currentText: currentText});
 							if(!search[0]) {
@@ -117,12 +121,13 @@
 							}else {
 								that.value(that.popup.find('li').eq(search[1]).data('val'));
 							}
-							that.options.change.call(that, e);
+							if(isFunction(that.options.change)) {
+								that.options.change.call(that, e);
+							}
 						} 
 						that.close();
 					}
 				}, 5);
-				//that.close();
 			}).bind('keydown' + NS, function(e) {
 				var next = e.keyCode === 40 ? true : false,
 					prev = e.keyCode === 38 ? true : false,
