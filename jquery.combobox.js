@@ -61,7 +61,8 @@
 					text = t.text(),
 					oldIndex = that.currentIndex,
 					idx = t.index();
-					
+				
+				e = extend({}, e, {selectIndex: idx, selectValue: val, selectText: text});				
 				if(isFunction(that.options.select)) {
 					var notChange = that.options.select.call(that, e);
 					if(notChange === false) {

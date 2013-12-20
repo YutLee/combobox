@@ -195,10 +195,10 @@
 					});
 				},
 				select: function(e) {
-					console.log(this.currentIndex);
+					console.log(this.currentIndex, e);
 					console.log(this.text(), this.value());
 					if(!confirm('daf')) {
-						return false;
+						return ;
 					}
 				}
 			});
