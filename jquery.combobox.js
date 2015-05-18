@@ -317,13 +317,18 @@
 				ignoreCase = that.options.ignoreCase ? 'i' : '',
 				reg = new RegExp(str, ignoreCase),
 				item = that.popup.find('li');
-				
-			item.hide();
 			
+			var s1 = new Date().getTime();	
+			
+			item.attr('display', 'none');
+			// item.hide();//attr方法效率高于hide方法
+			console.log(new Date().getTime() - s1);
+			var s2 = new Date().getTime();	
 			if(str === '') {
-				item.show().eq(0).removeClass(STATESELECTED).addClass(STATEFOCUSED).siblings('.' + STATEFOCUSED).removeClass(STATEFOCUSED).siblings('.' + STATESELECTED).removeClass(STATESELECTED);
+				item.attr('display', 'block').eq(0).removeClass(STATESELECTED).addClass(STATEFOCUSED).siblings('.' + STATEFOCUSED).removeClass(STATEFOCUSED).siblings('.' + STATESELECTED).removeClass(STATESELECTED);
 				return true;
 			}
+			var s3 = new Date().getTime();	
 			for(var i = 0; i < that.optionSize; i++) {
 				now = item.eq(i);
 				if(reg.test(now.text())) {
@@ -332,14 +337,16 @@
 						first = i;
 						now.removeClass(STATESELECTED).addClass(STATEFOCUSED).siblings('.' + STATEFOCUSED).removeClass(STATEFOCUSED).siblings('.' + STATESELECTED).removeClass(STATESELECTED);
 					}
-					now.show();
+					now.attr('display', 'block');
 				}
 			}
+			var e = new Date().getTime();
+			console.log((e - s1) + '==' + (e - s2) + '==' + (e - s3));
 			if(!result) {
 				item.eq(0).addClass(STATEFOCUSED).siblings('.' + STATEFOCUSED).removeClass(STATEFOCUSED);
 			}
 
-			if(!that.suggest) {item.show();}
+			if(!that.suggest) {item.attr('display', 'block');}
 			return result;
 		},
 		text: function(text) {
