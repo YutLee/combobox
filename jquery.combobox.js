@@ -314,7 +314,7 @@
 				now,
 				first = null,
 				result = false,
-				ignoreCase = that.options.ignoreCase ? 'i' : '';
+				ignoreCase = that.options.ignoreCase ? 'i' : '',
 				reg = new RegExp(str, ignoreCase),
 				item = that.popup.find('li');
 				
