@@ -152,16 +152,22 @@
 		</form>
 		</div>
 		<script>
+
 			var dataSource = [
-				{val: '1', text: 'red'},
-				{val: '2', text: 'blud'},
-				{val: '3', text: 'green'},
-				{val: '4', text: 'black'},
-				{val: '5', text: '蓝色'},
-				{val: '6', text: '红色'},
-				{val: '7', text: '黑色'},
-				{val: '8', text: '绿色'}
+				// {val: '1', text: 'red'},
+				// {val: '2', text: 'blud'},
+				// {val: '3', text: 'green'},
+				// {val: '4', text: 'black'},
+				// {val: '5', text: '蓝色'},
+				// {val: '6', text: '红色'},
+				// {val: '7', text: '黑色'},
+				// {val: '8', text: '绿色'}
 			];
+
+			for(var i = 0; i < 1000; i++) {
+				dataSource.push({val: i, text: 'color' + i})
+			}
+
 			var ds = [
 				{val: 'a', text: 'M'},
 				{val: 'b', text: 'S'},

@@ -315,17 +315,17 @@
 				first = null,
 				result = false,
 				ignoreCase = that.options.ignoreCase ? 'i' : '';
-				reg = new RegExp(str, ignoreCase);
+				reg = new RegExp(str, ignoreCase),
+				item = that.popup.find('li');
 				
-			that.popup.find('li').hide();
+			item.hide();
 			
 			if(str === '') {
-				that.popup.find('li').show().eq(0).removeClass(STATESELECTED).addClass(STATEFOCUSED).siblings('.' + STATEFOCUSED).removeClass(STATEFOCUSED).siblings('.' + STATESELECTED).removeClass(STATESELECTED);
+				item.show().eq(0).removeClass(STATESELECTED).addClass(STATEFOCUSED).siblings('.' + STATEFOCUSED).removeClass(STATEFOCUSED).siblings('.' + STATESELECTED).removeClass(STATESELECTED);
 				return true;
 			}
-			
 			for(var i = 0; i < that.optionSize; i++) {
-				now = that.popup.find('li').eq(i);
+				now = item.eq(i);
 				if(reg.test(now.text())) {
 					result = true;
 					if(first === null) {
@@ -336,10 +336,10 @@
 				}
 			}
 			if(!result) {
-				that.popup.find('li').eq(0).addClass(STATEFOCUSED).siblings('.' + STATEFOCUSED).removeClass(STATEFOCUSED);
+				item.eq(0).addClass(STATEFOCUSED).siblings('.' + STATEFOCUSED).removeClass(STATEFOCUSED);
 			}
 
-			if(!that.suggest) {that.popup.find('li').show();}
+			if(!that.suggest) {item.show();}
 			return result;
 		},
 		text: function(text) {
