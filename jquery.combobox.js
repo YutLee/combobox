@@ -318,17 +318,12 @@
 				reg = new RegExp(str, ignoreCase),
 				item = that.popup.find('li');
 			
-			var s1 = new Date().getTime();	
-			
-			item.attr('display', 'none');
-			// item.hide();//attr方法效率高于hide方法
-			console.log(new Date().getTime() - s1);
-			var s2 = new Date().getTime();	
+			// item.css('display', 'none');
+			// item.hide();//css方法效率高于hide方法
 			if(str === '') {
-				item.attr('display', 'block').eq(0).removeClass(STATESELECTED).addClass(STATEFOCUSED).siblings('.' + STATEFOCUSED).removeClass(STATEFOCUSED).siblings('.' + STATESELECTED).removeClass(STATESELECTED);
+				item.css('display', 'block').eq(0).removeClass(STATESELECTED).addClass(STATEFOCUSED).siblings('.' + STATEFOCUSED).removeClass(STATEFOCUSED).siblings('.' + STATESELECTED).removeClass(STATESELECTED);
 				return true;
 			}
-			var s3 = new Date().getTime();	
 			for(var i = 0; i < that.optionSize; i++) {
 				now = item.eq(i);
 				if(reg.test(now.text())) {
@@ -337,16 +332,14 @@
 						first = i;
 						now.removeClass(STATESELECTED).addClass(STATEFOCUSED).siblings('.' + STATEFOCUSED).removeClass(STATEFOCUSED).siblings('.' + STATESELECTED).removeClass(STATESELECTED);
 					}
-					now.attr('display', 'block');
+					now.css('display', 'block');
 				}
 			}
-			var e = new Date().getTime();
-			console.log((e - s1) + '==' + (e - s2) + '==' + (e - s3));
 			if(!result) {
 				item.eq(0).addClass(STATEFOCUSED).siblings('.' + STATEFOCUSED).removeClass(STATEFOCUSED);
 			}
 
-			if(!that.suggest) {item.attr('display', 'block');}
+			if(!that.suggest) {item.css('display', 'block');}
 			return result;
 		},
 		text: function(text) {
@@ -368,9 +361,9 @@
 		open: function() {
 			var that = this,
 				el = that.element;
-			
 			that.status = true;
 			that.popup.css(that._position()).show().addClass(STATEFOCUSED);
+			var s2 = new Date().getTime();	
 			if(!that.filter(that.text())) {
 				that.popup.find('li').eq(0).addClass(STATEFOCUSED);
 			}
