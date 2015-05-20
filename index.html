@@ -164,7 +164,7 @@
 				// {val: '8', text: '绿色'}
 			];
 
-			for(var i = 0; i < 100000; i++) {
+			for(var i = 0; i < 20000; i++) {
 				dataSource.push({val: i, text: 'color' + i})
 			}
 
@@ -215,6 +215,7 @@
 				dataValueField: 'val',
 				height: 150,
 				change: function(e) {
+					console.log(e);
 					console.log(this.text(), this.value());
 					var size = $('#size').data('gComboBox');
 					if(size) {

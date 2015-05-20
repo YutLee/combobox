@@ -332,40 +332,35 @@
 				result = false,
 				ignoreCase = that.options.ignoreCase ? 'i' : '',
 				reg = new RegExp(str, ignoreCase),
-				items = that.items;
-
-			items.css('display', 'none');
-			// items.hide();//css方法效率高于hide方法
-
-			if(str === '') {
-				that.lastFocus.removeClass(STATEFOCUSED + ' ' + STATESELECTED);
-				that.lastFocus = items.eq(0).addClass(STATEFOCUSED);
-				items.css('display', 'block');
-				return true;
-			}
-			var showIdx = [],
-				i, j;
+				items = that.items,
+				i, 
+				itemsHtml = '';
+				
 			for(i = 0; i < that.optionSize; i++) {
-				nowText = that.itemsText[i];
-				if(reg.test(nowText)) {
-					result = true;
-					if(first === null) {
-						first = i;
-						that.lastFocus.removeClass(STATEFOCUSED + ' ' + STATESELECTED);
-						that.lastFocus = items.eq(first).addClass(STATEFOCUSED);
+				var ds = that.options.dataSource[i],
+					text, value;
+				if(ds && !$.isEmptyObject(ds)) {
+					text = ds[that.options.dataTextField];
+					value= ds[that.options.dataValueField];
+					if(reg.test(text)) {
+						result = true;
+						var focused = '';
+						if(first === null) {
+							first = i;
+							focused = ' class="' + STATEFOCUSED + '"';
+						}
+						itemsHtml += '<li' + focused +' data-val=' + value + '>' + text + '</li>';
 					}
-					showIdx.push(i);
 				}
 			}
-			for(j = 0; j < showIdx.length; j++) {
-				items.eq(showIdx[j]).css('display', 'block');
-			}
-			if(!result) {
-				that.lastFocus.removeClass(STATEFOCUSED + ' ' + STATESELECTED);
-				that.lastFocus = items.eq(0).addClass(STATEFOCUSED);
-			}
 
-			if(!that.suggest) {items.css('display', 'block');}
+			that.ul.empty().html(itemsHtml);
+			that.items = that.ul.children('li');
+			if(!result) {
+				that.items.eq(0).addClass(STATEFOCUSED);
+			}
+			if(!that.suggest) {that.items.css('display', 'block');}
+
 			return result;
 		},
 		text: function(text) {
