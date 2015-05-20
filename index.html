@@ -164,7 +164,7 @@
 				// {val: '8', text: '绿色'}
 			];
 
-			for(var i = 0; i < 10000; i++) {
+			for(var i = 0; i < 100000; i++) {
 				dataSource.push({val: i, text: 'color' + i})
 			}
 
@@ -208,6 +208,7 @@
 					}
 				}
 			});
+			var s = new Date().getTime();
 			$('#color').comboBox({
 				dataSource: dataSource,
 				dataTextField: 'text',
@@ -234,8 +235,7 @@
 				},
 				index: 2
 			});
-			
-			console.log($('#color').data('gComboBox'));
+			console.log(new Date().getTime() - s);
 		</script>
 	</body>
 </html>

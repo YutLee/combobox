@@ -88,14 +88,17 @@
 			});
 			
 			that.down.bind('click' + NS, function(e) {
+				e.stopPropagation();
 				that.suggest = false;
+				var s = new Date().getTime();
 				if(!that.status) {
 					that.open();
 					that.input.focus();
+					console.log('openTime:' + (new Date().getTime() - s));
 				}else {
 					that.close();
+					console.log('closeTime:' + (new Date().getTime() - s));
 				}
-				e.stopPropagation();
 			}).bind('focus' + NS, function(e) {
 				isNotBlur = true;
 			}).bind('blur' + NS, function(e) {
@@ -135,7 +138,7 @@
 					enter = e.keyCode === 13 ? true : false,
 					esc = e.keyCode === 27 ? true : false,
 					current = that.popup.find('.' + STATESELECTED),
-					len = that.popup.find('li').length,
+					len = that.optionSize,
 					prevItem,
 					nextItem;
 		
@@ -246,18 +249,23 @@
 				offset = that.target.offset(),
 				width = that.target.outerWidth() - parseInt(that.popup.css('border-left-width'), 10) * 2,
 				top = offset.top + that.target.outerHeight(),
+				wh = $(window).height(),
+				wst = $(window).scrollTop(),
+				popupHeight = wh,
 				pos;
+
+			if(that.optionSize < 200) {
+				popupHeight = that.popup.outerHeight();
+			}
 				
 			that.popup.css({display: 'block', 'visibility': 'hidden'});
 			
-			if($(window).height() + $(window).scrollTop() > top + that.popup.outerHeight()) {
-				top = top;
+			if(wh + wst > top + popupHeight) {
 				that.target.addClass(STATEDOWN);
-			}else if(offset.top - $(window).scrollTop() >= that.popup.outerHeight()) {
-				top = offset.top - that.popup.outerHeight();
+			}else if(offset.top - wst >= popupHeight) {
+				top = offset.top - popupHeight;
 				that.target.addClass(STATEUP);
 			}else {
-				top = top;
 				that.target.addClass(STATEDOWN);
 			}
 			
@@ -270,11 +278,13 @@
 		setDataSource: function(data) {
 			var that = this,
 				i = 0,
-				len = data.length;
+				len = data.length,
+				itemsHtml = '';
 			that.optionSize = len;
 			that.ul = that.popup.children('ul').empty();
 			that.value('');
 			that.text('');
+			that.itemsText = [];
 			for(; i < len; i++) {
 				var ds = data[i],
 					text, value;
@@ -286,9 +296,15 @@
 						that.text(text);
 						that.currentIndex = i;
 					}
-					$('<li>').html(text).appendTo(that.ul).data('val', value);
+					itemsHtml += '<li data-val=' + value + '>' + text + '</li>';
+					that.itemsText.push(text);
+					// $('<li>').html(text).appendTo(that.ul).data('val', value);
 				}
 			}
+			that.ul.html(itemsHtml);
+			that.itemsHtml = itemsHtml;
+			that.items = that.ul.find('li');
+			that.lastFocus = that.items.eq(0);
 		},
 		select: function(obj) {
 			var that = this;
@@ -298,7 +314,7 @@
 			var that = this,
 				i = 0,
 				result = [false, null],
-				len = that.options.dataSource.length;
+				len = that.optionSize;
 				
 			while(i < len) {
 				if(text === that.options.dataSource[i][that.options.dataTextField]) {
@@ -316,30 +332,40 @@
 				result = false,
 				ignoreCase = that.options.ignoreCase ? 'i' : '',
 				reg = new RegExp(str, ignoreCase),
-				item = that.popup.find('li');
-			
-			// item.css('display', 'none');
-			// item.hide();//css方法效率高于hide方法
+				items = that.items;
+
+			items.css('display', 'none');
+			// items.hide();//css方法效率高于hide方法
+
 			if(str === '') {
-				item.css('display', 'block').eq(0).removeClass(STATESELECTED).addClass(STATEFOCUSED).siblings('.' + STATEFOCUSED).removeClass(STATEFOCUSED).siblings('.' + STATESELECTED).removeClass(STATESELECTED);
+				that.lastFocus.removeClass(STATEFOCUSED + ' ' + STATESELECTED);
+				that.lastFocus = items.eq(0).addClass(STATEFOCUSED);
+				items.css('display', 'block');
 				return true;
 			}
-			for(var i = 0; i < that.optionSize; i++) {
-				now = item.eq(i);
-				if(reg.test(now.text())) {
+			var showIdx = [],
+				i, j;
+			for(i = 0; i < that.optionSize; i++) {
+				nowText = that.itemsText[i];
+				if(reg.test(nowText)) {
 					result = true;
 					if(first === null) {
 						first = i;
-						now.removeClass(STATESELECTED).addClass(STATEFOCUSED).siblings('.' + STATEFOCUSED).removeClass(STATEFOCUSED).siblings('.' + STATESELECTED).removeClass(STATESELECTED);
+						that.lastFocus.removeClass(STATEFOCUSED + ' ' + STATESELECTED);
+						that.lastFocus = items.eq(first).addClass(STATEFOCUSED);
 					}
-					now.css('display', 'block');
+					showIdx.push(i);
 				}
 			}
+			for(j = 0; j < showIdx.length; j++) {
+				items.eq(showIdx[j]).css('display', 'block');
+			}
 			if(!result) {
-				item.eq(0).addClass(STATEFOCUSED).siblings('.' + STATEFOCUSED).removeClass(STATEFOCUSED);
+				that.lastFocus.removeClass(STATEFOCUSED + ' ' + STATESELECTED);
+				that.lastFocus = items.eq(0).addClass(STATEFOCUSED);
 			}
 
-			if(!that.suggest) {item.css('display', 'block');}
+			if(!that.suggest) {items.css('display', 'block');}
 			return result;
 		},
 		text: function(text) {
@@ -361,9 +387,9 @@
 		open: function() {
 			var that = this,
 				el = that.element;
+			
 			that.status = true;
 			that.popup.css(that._position()).show().addClass(STATEFOCUSED);
-			var s2 = new Date().getTime();	
 			if(!that.filter(that.text())) {
 				that.popup.find('li').eq(0).addClass(STATEFOCUSED);
 			}
